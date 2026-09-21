@@ -1,7 +1,7 @@
 const state = { token: localStorage.getItem('riskledger_token'), email: localStorage.getItem('riskledger_email'), portfolios: [], portfolioId: localStorage.getItem('riskledger_portfolio') };
 const $ = (selector) => document.querySelector(selector);
 const api = async (path, options = {}) => {
-  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+  const headers = { ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }), ...(options.headers || {}) };
   if (state.token) headers.Authorization = `Bearer ${state.token}`;
   const response = await fetch(path, { ...options, headers });
   const data = await response.json().catch(() => ({}));
@@ -28,6 +28,7 @@ document.querySelectorAll('.nav-item').forEach((button) => button.addEventListen
 document.querySelectorAll('[data-section-link]').forEach((button) => button.addEventListener('click', () => showPage(button.dataset.sectionLink)));
 $('#portfolio-select').addEventListener('change', async (event) => { state.portfolioId = event.target.value; localStorage.setItem('riskledger_portfolio', state.portfolioId); await loadDashboard(); });
 $('#refresh-trades').addEventListener('click', loadTrades);
+$('#import-trades').addEventListener('click', async () => { const portfolio = selectedPortfolio(); const file = $('#trade-file').files[0]; if (!portfolio || !file) return toast('Выберите CSV-файл.', true); const form = new FormData(); form.append('portfolio_id', portfolio.id); form.append('file', file); try { const result = await api('/api/v1/trades/import', { method: 'POST', headers: {}, body: form }); toast(`Импортировано: ${result.imported}`); await loadTrades(); await loadDashboard(); } catch (error) { toast(error.message, true); } });
 $('#trade-form').addEventListener('submit', async (event) => { event.preventDefault(); const portfolio = selectedPortfolio(); if (!portfolio) return toast('Сначала создайте портфель.', true); try { await api('/api/v1/trades', { method: 'POST', body: JSON.stringify({ portfolio_id: portfolio.id, instrument: $('#trade-instrument').value.toUpperCase(), side: $('#trade-side').value, quantity: Number($('#trade-quantity').value), price: Number($('#trade-price').value), fee: Number($('#trade-fee').value || 0), strategy: $('#trade-strategy').value.trim(), notes: $('#trade-notes').value.trim(), tags: $('#trade-tags').value.split(',').map((tag) => tag.trim()).filter(Boolean), checklist_ok: $('#trade-checklist').checked }) }); event.target.reset(); toast('Сделка сохранена'); await loadTrades(); await loadDashboard(); } catch (error) { toast(error.message, true); } });
 $('#new-portfolio').addEventListener('click', async () => { const name = prompt('Название портфеля'); if (!name) return; try { await api('/api/v1/portfolios', { method: 'POST', body: JSON.stringify({ name, base_currency: 'USD' }) }); toast('Портфель создан'); await loadPortfolios(); } catch (error) { toast(error.message, true); } });
 $('#new-limit').addEventListener('click', async () => { const value = Number(prompt('Максимальная стоимость портфеля в USD')); if (!value) return; try { await api('/api/v1/risk-limits', { method: 'POST', body: JSON.stringify({ type: 'max_portfolio_value', value }) }); toast('Лимит добавлен'); await loadLimits(); } catch (error) { toast(error.message, true); } });

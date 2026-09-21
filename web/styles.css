@@ -100,6 +100,9 @@
  .limit-row strong { color: var(--green); }
  .result-box { margin-top: 13px; padding: 12px; background: var(--mint); color: var(--green); font-size: 12px; }
  .empty { padding: 25px 0; color: var(--muted); text-align: center; font-size: 12px; }
+.import-box { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line); }
+.import-box input { width: 100%; margin: 4px 0; font-size: 12px; }
+.import-box small { display: block; margin-top: 9px; color: var(--muted); font-size: 10px; line-height: 1.4; }
  
  @media (max-width: 850px) {
 	 .auth-layout { grid-template-columns: 1fr; }

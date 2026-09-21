@@ -3,11 +3,14 @@ package main
 import (
 	"context"
 	"database/sql"
+	"encoding/csv"
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -74,6 +77,7 @@ func main() {
 	mux.Handle("/api/v1/portfolios", app.requireAuth(http.HandlerFunc(app.portfoliosHandler)))
 	mux.Handle("/api/v1/portfolios/", app.requireAuth(http.HandlerFunc(app.portfolioDetailHandler)))
 	mux.Handle("/api/v1/trades", app.requireAuth(http.HandlerFunc(app.tradesHandler)))
+	mux.Handle("/api/v1/trades/import", app.requireAuth(http.HandlerFunc(app.importTradesHandler)))
 	mux.Handle("/api/v1/positions", app.requireAuth(http.HandlerFunc(app.positionsHandler)))
 	mux.Handle("/api/v1/analytics", app.requireAuth(http.HandlerFunc(app.analyticsHandler)))
 	mux.Handle("/api/v1/summary", app.requireAuth(http.HandlerFunc(app.summaryHandler)))
@@ -293,6 +297,74 @@ func (a *App) tradesHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "method not allowed"})
+}
+
+func (a *App) importTradesHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "method not allowed"})
+		return
+	}
+	if err := r.ParseMultipartForm(5 << 20); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "file is required"})
+		return
+	}
+	portfolioID := r.FormValue("portfolio_id")
+	userID, authenticated := userIDFromRequest(r)
+	portfolio, owns := a.service.PortfolioByID(portfolioID)
+	if !authenticated || !owns || portfolio.UserID != userID {
+		writeJSON(w, http.StatusForbidden, map[string]string{"error": "portfolio access denied"})
+		return
+	}
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "file is required"})
+		return
+	}
+	defer file.Close()
+	reader := csv.NewReader(io.LimitReader(file, 5<<20))
+	reader.FieldsPerRecord = -1
+	rows, err := reader.ReadAll()
+	if err != nil || len(rows) < 2 {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid CSV"})
+		return
+	}
+	imported := 0
+	errors := make([]string, 0)
+	for index, row := range rows[1:] {
+		if len(row) < 5 {
+			errors = append(errors, "строка "+strconv.Itoa(index+2)+": нужно минимум 5 полей")
+			continue
+		}
+		quantity, quantityErr := strconv.ParseFloat(strings.TrimSpace(row[2]), 64)
+		price, priceErr := strconv.ParseFloat(strings.TrimSpace(row[3]), 64)
+		fee, feeErr := strconv.ParseFloat(strings.TrimSpace(row[4]), 64)
+		if quantityErr != nil || priceErr != nil || feeErr != nil {
+			errors = append(errors, "строка "+strconv.Itoa(index+2)+": неверные числа")
+			continue
+		}
+		strategy, notes, tags := "", "", []string{}
+		checklist := false
+		if len(row) > 5 {
+			strategy = strings.TrimSpace(row[5])
+		}
+		if len(row) > 6 && strings.TrimSpace(row[6]) != "" {
+			for _, tag := range strings.Split(row[6], ",") {
+				tags = append(tags, strings.TrimSpace(tag))
+			}
+		}
+		if len(row) > 7 {
+			notes = strings.TrimSpace(row[7])
+		}
+		if len(row) > 8 {
+			checklist, _ = strconv.ParseBool(strings.TrimSpace(row[8]))
+		}
+		if err := a.service.AddTrade(portfolioID, strings.TrimSpace(row[0]), strings.TrimSpace(row[1]), quantity, price, fee, strategy, notes, tags, checklist); err != nil {
+			errors = append(errors, "строка "+strconv.Itoa(index+2)+": "+err.Error())
+			continue
+		}
+		imported++
+	}
+	writeJSON(w, http.StatusCreated, map[string]any{"imported": imported, "errors": errors})
 }
 
 func (a *App) positionsHandler(w http.ResponseWriter, r *http.Request) {
