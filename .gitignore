@@ -1,0 +1,8 @@
+.env
+.env.*
+!.env.example
+bin/
+build/
+coverage/
+*.log
+.DS_Store

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="RiskLedger portfolio risk dashboard">
+  <title>RiskLedger | Portfolio control</title>
+  <link rel="stylesheet" href="/web/styles.css">
+</head>
+<body>
+  <div id="toast" class="toast" role="status"></div>
+  <main class="shell">
+    <section id="auth-view" class="auth-layout">
+      <div class="brand-panel">
+        <div class="brand-mark">RL</div>
+        <p class="eyebrow">Portfolio control room</p>
+        <h1>Know your exposure before the market moves.</h1>
+        <p class="lede">RiskLedger keeps positions, PnL and risk limits in one calm operating view.</p>
+        <div class="signal-list">
+          <span><i></i> Position-aware accounting</span>
+          <span><i></i> Risk limit monitoring</span>
+          <span><i></i> One source of truth</span>
+        </div>
+      </div>
+      <div class="auth-card">
+        <div class="auth-tabs">
+          <button class="tab active" data-auth-mode="login">Sign in</button>
+          <button class="tab" data-auth-mode="register">Create account</button>
+        </div>
+        <div id="auth-copy">
+          <p class="eyebrow">Welcome back</p>
+          <h2>Open your workspace</h2>
+          <p class="muted">Track your portfolio with clarity.</p>
+        </div>
+        <form id="auth-form">
+          <label>Email<input id="auth-email" type="email" autocomplete="email" placeholder="you@example.com" required></label>
+          <label>Password<input id="auth-password" type="password" autocomplete="current-password" placeholder="At least 6 characters" required minlength="6"></label>
+          <button class="primary wide" type="submit" id="auth-submit">Sign in</button>
+        </form>
+        <p class="demo-note">Local demo: <strong>demo@riskledger.dev</strong> / <strong>demo-password</strong></p>
+      </div>
+    </section>
+
+    <section id="app-view" class="app-view hidden">
+      <header class="topbar">
+        <div class="brand-inline"><div class="brand-mark small">RL</div><span>RiskLedger</span></div>
+        <div class="top-actions"><span id="user-email" class="user-email"></span><button id="logout" class="ghost">Log out</button></div>
+      </header>
+      <div class="workspace">
+        <aside class="sidebar">
+          <p class="eyebrow">Workspace</p>
+          <button class="nav-item active" data-section="overview"><span>01</span> Overview</button>
+          <button class="nav-item" data-section="trades"><span>02</span> Trades</button>
+          <button class="nav-item" data-section="risk"><span>03</span> Risk controls</button>
+          <div class="sidebar-foot"><span class="status-dot"></span> API connected</div>
+        </aside>
+        <div class="content">
+          <div class="section-heading">
+            <div><p class="eyebrow">Portfolio workspace</p><h2 id="page-title">Overview</h2></div>
+            <div class="portfolio-picker"><label for="portfolio-select">Portfolio</label><select id="portfolio-select"></select><button id="new-portfolio" class="icon-button" title="Create portfolio">+</button></div>
+          </div>
+
+          <section id="overview-section" class="page-section">
+            <div class="metric-grid">
+              <article class="metric-card hero-metric"><div class="metric-label">Portfolio value</div><div id="total-value" class="metric-value">$0.00</div><div class="metric-foot">Current market value</div></article>
+              <article class="metric-card"><div class="metric-label">Realized PnL</div><div id="realized-pnl" class="metric-value positive">$0.00</div><div class="metric-foot">Closed positions</div></article>
+              <article class="metric-card"><div class="metric-label">Unrealized PnL</div><div id="unrealized-pnl" class="metric-value">$0.00</div><div class="metric-foot">Open positions</div></article>
+              <article class="metric-card alert-metric"><div class="metric-label">Open risk events</div><div id="risk-count" class="metric-value">0</div><div class="metric-foot">Requires attention</div></article>
+            </div>
+            <div class="split-grid">
+              <article class="panel"><div class="panel-heading"><div><p class="eyebrow">Positions</p><h3>Open exposure</h3></div><button class="text-button" data-section-link="trades">Add trade</button></div><div id="positions" class="position-list"></div></article>
+              <article class="panel accent-panel"><p class="eyebrow">Operating principle</p><h3>Every number should answer a question.</h3><p class="muted">Use trades as the source of truth. RiskLedger recalculates positions, PnL and control events from the ledger.</p><div class="mini-rule"><span></span><span></span><span></span></div></article>
+            </div>
+          </section>
+
+          <section id="trades-section" class="page-section hidden"><div class="split-grid trades-layout"><article class="panel"><div class="panel-heading"><div><p class="eyebrow">Ledger</p><h3>Recent trades</h3></div><button id="refresh-trades" class="ghost">Refresh</button></div><div id="trades-list" class="trade-list"></div></article><article class="panel"><p class="eyebrow">New entry</p><h3>Record a trade</h3><form id="trade-form" class="stack-form"><label>Instrument<input id="trade-instrument" required placeholder="BTC"></label><div class="form-row"><label>Side<select id="trade-side"><option value="buy">Buy</option><option value="sell">Sell</option></select></label><label>Quantity<input id="trade-quantity" type="number" min="0.00000001" step="any" required placeholder="1.25"></label></div><div class="form-row"><label>Price<input id="trade-price" type="number" min="0.00000001" step="any" required placeholder="65000"></label><label>Fee<input id="trade-fee" type="number" min="0" step="any" value="0"></label></div><button class="primary wide" type="submit">Record trade</button></form></article></div></section>
+
+          <section id="risk-section" class="page-section hidden"><div class="split-grid"><article class="panel"><div class="panel-heading"><div><p class="eyebrow">Guardrails</p><h3>Risk limits</h3></div><button id="new-limit" class="primary">Add limit</button></div><div id="limits-list" class="limits-list"></div></article><article class="panel"><p class="eyebrow">Control loop</p><h3>Review before exposure becomes a surprise.</h3><p class="muted">Limits are evaluated against the current portfolio summary. Use a max portfolio value limit to test the complete risk event flow.</p><button id="evaluate-risk" class="secondary wide">Evaluate now</button><div id="risk-result" class="result-box hidden"></div></article></div></section>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script src="/web/app.js"></script>
+</body>
+</html>
