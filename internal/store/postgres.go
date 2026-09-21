@@ -59,11 +59,11 @@ func (s *PostgresStore) PortfoliosForUser(userID string) []domain.Portfolio {
 }
 
 func (s *PostgresStore) AddTrade(trade domain.Trade) {
-	_, _ = s.db.ExecContext(context.Background(), `INSERT INTO trades (id, portfolio_id, instrument, side, quantity, price, fee, executed_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`, trade.ID, trade.PortfolioID, trade.Instrument, trade.Side, trade.Quantity, trade.Price, trade.Fee, trade.ExecutedAt)
+	_, _ = s.db.ExecContext(context.Background(), `INSERT INTO trades (id, portfolio_id, instrument, side, quantity, price, fee, strategy, tags, notes, checklist_ok, executed_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`, trade.ID, trade.PortfolioID, trade.Instrument, trade.Side, trade.Quantity, trade.Price, trade.Fee, trade.Strategy, trade.Tags, trade.Notes, trade.ChecklistOK, trade.ExecutedAt)
 }
 
 func (s *PostgresStore) TradesForPortfolio(portfolioID string) []domain.Trade {
-	rows, err := s.db.QueryContext(context.Background(), `SELECT id, portfolio_id, instrument, side, quantity, price, fee, executed_at FROM trades WHERE portfolio_id=$1 ORDER BY executed_at ASC`, portfolioID)
+	rows, err := s.db.QueryContext(context.Background(), `SELECT id, portfolio_id, instrument, side, quantity, price, fee, strategy, tags, notes, checklist_ok, executed_at FROM trades WHERE portfolio_id=$1 ORDER BY executed_at ASC`, portfolioID)
 	if err != nil {
 		return nil
 	}
@@ -71,7 +71,7 @@ func (s *PostgresStore) TradesForPortfolio(portfolioID string) []domain.Trade {
 	trades := make([]domain.Trade, 0)
 	for rows.Next() {
 		var trade domain.Trade
-		if rows.Scan(&trade.ID, &trade.PortfolioID, &trade.Instrument, &trade.Side, &trade.Quantity, &trade.Price, &trade.Fee, &trade.ExecutedAt) == nil {
+		if rows.Scan(&trade.ID, &trade.PortfolioID, &trade.Instrument, &trade.Side, &trade.Quantity, &trade.Price, &trade.Fee, &trade.Strategy, &trade.Tags, &trade.Notes, &trade.ChecklistOK, &trade.ExecutedAt) == nil {
 			trades = append(trades, trade)
 		}
 	}

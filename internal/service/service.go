@@ -85,7 +85,7 @@ func (s *Service) TradesForPortfolio(portfolioID string) []domain.Trade {
 	return s.store.TradesForPortfolio(portfolioID)
 }
 
-func (s *Service) AddTrade(portfolioID, instrument, side string, quantity, price, fee float64) error {
+func (s *Service) AddTrade(portfolioID, instrument, side string, quantity, price, fee float64, strategy, notes string, tags []string, checklistOK bool) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if _, ok := s.store.PortfolioByID(portfolioID); !ok {
@@ -106,8 +106,33 @@ func (s *Service) AddTrade(portfolioID, instrument, side string, quantity, price
 		}
 	}
 
-	s.store.AddTrade(domain.NewTrade(portfolioID, instrument, side, quantity, price, fee))
+	s.store.AddTrade(domain.NewTrade(portfolioID, instrument, side, quantity, price, fee, strategy, notes, tags, checklistOK))
 	return nil
+}
+
+func (s *Service) Analytics(portfolioID string) map[string]any {
+	trades := s.store.TradesForPortfolio(portfolioID)
+	strategies := map[string]int{}
+	tags := map[string]int{}
+	checked := 0
+	for _, trade := range trades {
+		strategy := trade.Strategy
+		if strategy == "" {
+			strategy = "Без стратегии"
+		}
+		strategies[strategy]++
+		if trade.ChecklistOK {
+			checked++
+		}
+		for _, tag := range trade.Tags {
+			tags[tag]++
+		}
+	}
+	rate := 0.0
+	if len(trades) > 0 {
+		rate = float64(checked) / float64(len(trades)) * 100
+	}
+	return map[string]any{"portfolio_id": portfolioID, "trade_count": len(trades), "strategies": strategies, "tags": tags, "checklist_rate": rate}
 }
 
 func (s *Service) Positions(portfolioID string) []domain.Position {

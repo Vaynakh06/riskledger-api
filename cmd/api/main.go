@@ -75,6 +75,7 @@ func main() {
 	mux.Handle("/api/v1/portfolios/", app.requireAuth(http.HandlerFunc(app.portfolioDetailHandler)))
 	mux.Handle("/api/v1/trades", app.requireAuth(http.HandlerFunc(app.tradesHandler)))
 	mux.Handle("/api/v1/positions", app.requireAuth(http.HandlerFunc(app.positionsHandler)))
+	mux.Handle("/api/v1/analytics", app.requireAuth(http.HandlerFunc(app.analyticsHandler)))
 	mux.Handle("/api/v1/summary", app.requireAuth(http.HandlerFunc(app.summaryHandler)))
 	mux.Handle("/api/v1/risk-limits", app.requireAuth(http.HandlerFunc(app.riskLimitsHandler)))
 	mux.Handle("/api/v1/risk-evaluate", app.requireAuth(http.HandlerFunc(app.riskEvaluateHandler)))
@@ -263,12 +264,16 @@ func (a *App) tradesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == http.MethodPost {
 		var req struct {
-			PortfolioID string  `json:"portfolio_id"`
-			Instrument  string  `json:"instrument"`
-			Side        string  `json:"side"`
-			Quantity    float64 `json:"quantity"`
-			Price       float64 `json:"price"`
-			Fee         float64 `json:"fee"`
+			PortfolioID string   `json:"portfolio_id"`
+			Instrument  string   `json:"instrument"`
+			Side        string   `json:"side"`
+			Quantity    float64  `json:"quantity"`
+			Price       float64  `json:"price"`
+			Fee         float64  `json:"fee"`
+			Strategy    string   `json:"strategy"`
+			Notes       string   `json:"notes"`
+			Tags        []string `json:"tags"`
+			ChecklistOK bool     `json:"checklist_ok"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid body"})
@@ -280,7 +285,7 @@ func (a *App) tradesHandler(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, http.StatusForbidden, map[string]string{"error": "portfolio access denied"})
 			return
 		}
-		if err := a.service.AddTrade(req.PortfolioID, req.Instrument, req.Side, req.Quantity, req.Price, req.Fee); err != nil {
+		if err := a.service.AddTrade(req.PortfolioID, req.Instrument, req.Side, req.Quantity, req.Price, req.Fee, req.Strategy, req.Notes, req.Tags, req.ChecklistOK); err != nil {
 			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 			return
 		}
@@ -301,6 +306,19 @@ func (a *App) positionsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, a.service.Positions(portfolioID))
+}
+
+func (a *App) analyticsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "method not allowed"})
+		return
+	}
+	portfolioID, ok := a.portfolioIDForRequest(r)
+	if !ok {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "portfolio not found"})
+		return
+	}
+	writeJSON(w, http.StatusOK, a.service.Analytics(portfolioID))
 }
 
 func (a *App) summaryHandler(w http.ResponseWriter, r *http.Request) {

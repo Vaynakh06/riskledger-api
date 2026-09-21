@@ -39,6 +39,8 @@
  .tab.active { border-color: var(--orange); color: var(--ink); font-weight: 700; }
  .auth-card label, .stack-form label { display: grid; gap: 6px; margin: 16px 0; color: #59636a; font-size: 12px; font-weight: 600; }
  .auth-card input, .stack-form input, .stack-form select, .portfolio-picker select { padding: 11px 12px; border: 1px solid var(--line); background: #fbfcfb; color: var(--ink); outline: 0; }
+.stack-form textarea { padding: 11px 12px; border: 1px solid var(--line); background: #fbfcfb; color: var(--ink); outline: 0; resize: vertical; }
+.check-label { display: flex !important; grid-template-columns: auto 1fr; gap: 8px !important; align-items: center; }
  .auth-card input:focus, .stack-form input:focus, .stack-form select:focus { border-color: var(--green); box-shadow: 0 0 0 2px var(--mint); }
  .primary, .secondary, .ghost, .text-button { padding: 10px 14px; font-weight: 700; }
  .primary { background: var(--green); color: #fff; }

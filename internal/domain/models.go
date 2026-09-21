@@ -31,6 +31,10 @@ type Trade struct {
 	Quantity    float64   `json:"quantity"`
 	Price       float64   `json:"price"`
 	Fee         float64   `json:"fee"`
+	Strategy    string    `json:"strategy,omitempty"`
+	Tags        []string  `json:"tags,omitempty"`
+	Notes       string    `json:"notes,omitempty"`
+	ChecklistOK bool      `json:"checklist_ok"`
 	ExecutedAt  time.Time `json:"executed_at"`
 }
 
@@ -91,7 +95,7 @@ func NewPortfolio(userID, name, baseCurrency string) Portfolio {
 	}
 }
 
-func NewTrade(portfolioID, instrument, side string, quantity, price, fee float64) Trade {
+func NewTrade(portfolioID, instrument, side string, quantity, price, fee float64, strategy, notes string, tags []string, checklistOK bool) Trade {
 	return Trade{
 		ID:          generateID(),
 		PortfolioID: portfolioID,
@@ -100,6 +104,10 @@ func NewTrade(portfolioID, instrument, side string, quantity, price, fee float64
 		Quantity:    quantity,
 		Price:       price,
 		Fee:         fee,
+		Strategy:    strategy,
+		Tags:        tags,
+		Notes:       notes,
+		ChecklistOK: checklistOK,
 		ExecutedAt:  time.Now(),
 	}
 }

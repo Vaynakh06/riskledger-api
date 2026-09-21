@@ -105,11 +105,14 @@ The frontend is served by the same Go process from `web/`, so there is no separa
 - `GET|POST /api/v1/portfolios`
 - `POST /api/v1/trades`
 - `GET /api/v1/positions`
+- `GET /api/v1/analytics`
 - `GET /api/v1/summary`
 - `GET|POST /api/v1/risk-limits`
 - `GET /api/v1/risk-evaluate`
 
 Protected endpoints require `Authorization: Bearer <token>`.
+
+Trade journal fields include strategy, comma-separated tags, notes, and checklist completion. Analytics summarizes the selected portfolio by strategy, tags, trade count, and checklist discipline.
 
 ## Scaling notes
 
