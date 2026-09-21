@@ -9,5 +9,6 @@ FROM alpine:3.20
 RUN apk add --no-cache wget
 WORKDIR /app
 COPY --from=builder /app/app /app/app
+COPY --from=builder /app/web /app/web
 EXPOSE 8080
 CMD ["/app/app"]
