@@ -1,0 +1,52 @@
+services:
+  - type: web
+    name: riskledger
+    runtime: docker
+    repo: https://github.com/Vaynakh06/riskledger-api.git
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: DEMO_MODE
+        value: "false"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: riskledger-db
+          property: connectionString
+      - key: MARKET_DATA_URL
+        value: https://api.coingecko.com/api/v3/simple/price
+      - key: MARKET_DATA_API_KEY
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: ALERT_FROM
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+      - key: SLACK_WEBHOOK_URL
+        sync: false
+      - key: ALERT_WEBHOOK_URL
+        sync: false
+      - key: BROKER_API_URL
+        sync: false
+      - key: BROKER_API_TOKEN
+        sync: false
+
+databases:
+  - name: riskledger-db
+    databaseName: riskledger
+    user: riskledger
+    plan: free

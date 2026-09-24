@@ -14,7 +14,7 @@ RiskLedger is the core backend service for portfolio accounting, trade tracking,
 
 - Go
 - PostgreSQL
-- signed short-lived bearer tokens
+- short-lived bearer tokens with HttpOnly refresh cookies
 - Docker Compose
 - REST API
 
@@ -33,7 +33,7 @@ docker compose --env-file .env up --build -d
 curl http://localhost:8080/health
 ```
 
-PostgreSQL runs migrations from `migrations/` on first initialization. Never commit `.env`, production credentials, or database dumps.
+The container entrypoint applies all idempotent migrations on every startup, including existing Render databases. Never commit `.env`, production credentials, or database dumps.
 
 The API refuses to start outside `DEMO_MODE` unless both `DATABASE_URL` and a 32-character minimum `JWT_SECRET` are present. `DEMO_MODE=true` is for local demos only and uses volatile memory storage.
 
@@ -98,6 +98,20 @@ With the API running, open [http://localhost:8080/](http://localhost:8080/) in a
 
 The frontend is served by the same Go process from `web/`, so there is no separate frontend server for local use.
 
+## Deploy to Render
+
+This repository is ready for a Docker-based Render Web Service. Use the included `render.yaml` as the deployment template, or create a new Render Web Service with these env vars:
+
+- `PORT=8080`
+- `DEMO_MODE=false`
+- `JWT_SECRET=<32+ random chars>`
+- `DATABASE_URL=<Render Postgres connection string>`
+- `MARKET_DATA_URL=https://api.coingecko.com/api/v3/simple/price`
+- optional `MARKET_DATA_API_KEY` for CoinGecko rate limits;
+- optional SMTP, Telegram, Slack, and webhook variables from `.env.example` for real alert delivery.
+
+Render will build the Docker image from `Dockerfile`, then the app will apply SQL migrations from `migrations/` before starting the server. After deployment, open the generated Render URL in a browser.
+
 ## API
 
 - `POST /api/v1/auth/register`
@@ -109,8 +123,22 @@ The frontend is served by the same Go process from `web/`, so there is no separa
 - `GET /api/v1/summary`
 - `GET|POST /api/v1/risk-limits`
 - `GET /api/v1/risk-evaluate`
+- `POST /api/v1/risk-scenario`
+- `GET|POST /api/v1/risk-alert-rules`
+- `POST /api/v1/risk-alerts/evaluate`
+- `GET /api/v1/risk-alert-events`
+- `GET /api/v1/audit-log`
+- `GET|POST /api/v1/cash`
+- `GET /api/v1/performance-report`
+- `GET|POST /api/v1/benchmarks`
+- `GET|POST /api/v1/allocations`
+- `POST /api/v1/fx-rates`
+- `POST /api/v1/broker-sync`
+- `POST /api/v1/auth/2fa/enable`
 
-Protected endpoints require `Authorization: Bearer <token>`.
+Protected endpoints require `Authorization: Bearer <token>`. Portfolio endpoints are owner-scoped; the API also sets security headers, throttles repeated login failures, caps auth body sizes, and rotates refresh sessions in an HttpOnly cookie.
+
+Performance reports now include cash, total return, TWR, IRR, benchmark metadata, and allocation targets. Broker sync uses the configured `BROKER_API_URL` contract and remains disabled when credentials are absent. TOTP enrollment is available through the authenticated 2FA endpoint; login accepts the `code` field when 2FA is enabled.
 
 Trade journal fields include strategy, comma-separated tags, notes, and checklist completion. Analytics summarizes the selected portfolio by strategy, tags, trade count, and checklist discipline.
 

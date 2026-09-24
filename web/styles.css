@@ -99,8 +99,40 @@
  .limit-row { grid-template-columns: 1.1fr 1fr .5fr; }
  .limit-row strong { color: var(--green); }
  .result-box { margin-top: 13px; padding: 12px; background: var(--mint); color: var(--green); font-size: 12px; }
+ .risk-grid { display: grid; grid-template-columns: repeat(5, minmax(120px, 1fr)); gap: 10px; margin-bottom: 14px; }
+ .risk-card { padding: 16px; background: #fff; border: 1px solid var(--line); }
+ .risk-healthy { background: #edf9f1; border-color: #d7f0de; }
+ .risk-card .metric-value.warning { color: #bb7d1f; }
+ .risk-card .metric-value.critical { color: #a5462f; }
+ .risk-card .metric-value.positive { color: var(--green); }
+ .risk-panel { background: #f8faf9; border: 1px solid var(--line); padding: 16px; margin-bottom: 18px; }
+ .risk-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: var(--muted); margin-bottom: 10px; }
+ .risk-list { display: grid; gap: 8px; }
+ .risk-item { padding: 10px 12px; border-left: 4px solid var(--green); background: #fff; font-size: 12px; }
+ .risk-item.warn { border-color: #d1a447; }
+ .risk-item.danger { border-color: #bb5a3d; }
+ .risk-item.safe { border-color: var(--green); }
+ .alert-compliance-grid { margin-top: 18px; }
+ .compliance-list { display: grid; gap: 7px; margin-top: 12px; }
+ .compliance-row { display: grid; gap: 4px; padding: 10px; border-left: 3px solid #c5d8d2; background: #f8faf9; font-size: 11px; }
+ .compliance-row small { color: var(--muted); }
+ .scenario-panel { margin: 16px 0; padding: 16px; border: 1px solid #c5d8d2; background: #f5fbf8; }
+ .scenario-controls { display: grid; grid-template-columns: 1.5fr repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+ .scenario-controls label { font-size: 11px; color: var(--muted); }
+ .scenario-controls input, .scenario-controls select { width: 100%; margin-top: 5px; }
+ .scenario-result { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px; padding-top: 12px; border-top: 1px solid #dce9e4; color: #31554c; font-size: 12px; }
+ .scenario-result strong { color: var(--ink); }
  .empty { padding: 25px 0; color: var(--muted); text-align: center; font-size: 12px; }
-.import-box { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line); }
+ .ledger-list { display: grid; gap: 8px; }
+ .broker-import { border-color: #b7d2ca; background: #f5fbf8; }
+ .import-summary { margin-top: 10px; color: var(--green); font-size: 12px; }
+ .import-batches { display: grid; gap: 7px; margin-top: 10px; }
+ .import-batch { display: grid; grid-template-columns: 1fr 1.5fr 1fr 1fr; gap: 8px; padding: 9px 10px; background: #fff; border: 1px solid var(--line); font-size: 11px; align-items: center; }
+ .review-count { color: #a5462f; }
+ .ledger-row { display: grid; grid-template-columns: .8fr 1fr .75fr 1fr 1.2fr; gap: 8px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 12px; }
+ .ledger-row:last-child { border-bottom: 0; }
+ .ledger-row strong { font-size: 12px; }
+ .import-box { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line); }
 .import-box input { width: 100%; margin: 4px 0; font-size: 12px; }
 .import-box small { display: block; margin-top: 9px; color: var(--muted); font-size: 10px; line-height: 1.4; }
  
